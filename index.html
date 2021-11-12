@@ -1,0 +1,377 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="author" content="Pawel Hryniszak">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/jpg" href="./canfd.jpg">
+    <title>STMG431 FDCAN SOLVER</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/foundation-sites@6/dist/css/foundation.min.css">
+
+</head>
+
+<body>
+    <div class="grid-container">
+        <div class="grid-x grid-padding-x">
+            <div class="small-5 cell small-offset-3">
+                <h2 class="text-center">STM32G4 FDCAN</h2>
+            </div>
+            <div class="small-4 cell">
+            </div>
+
+            <!-- 1 -->
+            <div class="small-3 cell">
+                <label class="text-right middle">FDCAN Clock</label>
+            </div>
+            <div class="small-5 cell">
+                <input id="input_clock" type="number" placeholder="FDCAN Clock">
+            </div>
+            <div class="small-4 cell">
+                <div class="text-left middle">[MHz]</div>
+            </div>
+
+            <!-- 2 -->
+            <div class="small-3 cell">
+                <label class="text-right middle">FDCAN Clock Divider</label>
+            </div>
+            <div class="small-5 cell">
+                <select id="input_clock_divider">
+                    <option value=1>FDCAN_CLOCK_DIV1</option>
+                    <option value=2>FDCAN_CLOCK_DIV2</option>
+                    <option value=4>FDCAN_CLOCK_DIV4</option>
+                    <option value=6>FDCAN_CLOCK_DIV6</option>
+                    <option value=8>FDCAN_CLOCK_DIV8</option>
+                    <option value=10>FDCAN_CLOCK_DIV10</option>
+                    <option value=12>FDCAN_CLOCK_DIV12</option>
+                    <option value=14>FDCAN_CLOCK_DIV14</option>
+                    <option value=16>FDCAN_CLOCK_DIV16</option>
+                    <option value=18>FDCAN_CLOCK_DIV18</option>
+                    <option value=14>FDCAN_CLOCK_DIV14</option>
+                    <option value=16>FDCAN_CLOCK_DIV16</option>
+                    <option value=18>FDCAN_CLOCK_DIV18</option>
+                    <option value=20>FDCAN_CLOCK_DIV20</option>
+                    <option value=22>FDCAN_CLOCK_DIV22</option>
+                    <option value=24>FDCAN_CLOCK_DIV24</option>
+                    <option value=26>FDCAN_CLOCK_DIV26</option>
+                    <option value=28>FDCAN_CLOCK_DIV28</option>
+                    <option value=30>FDCAN_CLOCK_DIV30</option>
+                </select>
+            </div>
+            <div class="small-4 cell">
+            </div>
+
+            <!-- 3 -->
+            <div class="small-3 cell">
+                <label class="text-right middle">Nominal rate (CLASSIC CAN)</label>
+            </div>
+            <div class="small-5 cell">
+                <input id="input_nominal_rate" type="number" placeholder="Nominal rate (CLASSIC CAN)">
+            </div>
+            <div class="small-4 cell">
+                <div class="text-left middle">[kbit/s]</div>
+            </div>
+
+            <!-- 4 -->
+            <div class="small-3 cell">
+                <label class="text-right middle">Sampling point (CLASSIC CAN)</label>
+            </div>
+            <div class="small-4 cell">
+                <div class="slider" data-slider data-start="5" data-initial-start="75" data-step="5">
+                    <span class="slider-handle" data-slider-handle role="slider" tabindex="1"
+                        aria-controls="input_sampling_point_nominal"></span>
+                    <span class="slider-fill" data-slider-fill></span>
+                </div>
+            </div>
+            <div class="cell small-1">
+                <input type="number" id="input_sampling_point_nominal">
+            </div>
+            <div class="small-4 cell">
+                <div class="text-left middle">[%]</div>
+            </div>
+
+            <!-- 5 -->
+            <div class="small-3 cell">
+                <label class="text-right middle">Data rate (FD CAN)</label>
+            </div>
+            <div class="small-5 cell">
+                <input id="input_data_rate" type="number" placeholder="Data rate (FD CAN)">
+            </div>
+            <div class="small-4 cell">
+                <div class="text-left middle">[kbit/s]</div>
+            </div>
+
+            <!-- 6 -->
+            <div class="small-3 cell">
+                <label class="text-right middle">Sampling point (CLASSIC CAN)</label>
+            </div>
+            <div class="small-4 cell">
+                <div class="slider" data-slider data-start="5" data-initial-start="50" data-step="5">
+                    <span class="slider-handle" data-slider-handle role="slider" tabindex="1"
+                        aria-controls="input_sampling_point_data"></span>
+                    <span class="slider-fill" data-slider-fill></span>
+                </div>
+            </div>
+            <div class="cell small-1">
+                <input type="number" id="input_sampling_point_data">
+            </div>
+            <div class="small-4 cell">
+                <div class="text-left middle">[%]</div>
+            </div>
+
+            <!-- 7 -->
+            <div class="small-5 cell small-offset-3">
+                <button id="button_resolve" class="submit success button expanded">SOLVE</button>
+            </div>
+        </div>
+
+        <!-- table with nominal results -->
+        <hr>
+        <p>Table with <b>NOMINAL</b> bit time:</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Baudrate</th>
+                    <th>Prescaler</th>
+                    <th>Time quanta</th>
+                    <th>Time Seg1</th>
+                    <th>Time Seg2</th>
+                    <th>Sample point [%]</th>
+                    <th>Sample point diff [%]</th>
+                </tr>
+            </thead>
+            <tbody id="table-nominal">
+            </tbody>
+        </table>
+
+        <!-- table with nominal results -->
+        <hr>
+        <p>Table with <b>DATA</b> bit time:</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Baudrate</th>
+                    <th>Prescaler</th>
+                    <th>Time quanta</th>
+                    <th>Time Seg1</th>
+                    <th>Time Seg2</th>
+                    <th>Sample point [%]</th>
+                    <th>Sample point diff [%]</th>
+                </tr>
+            </thead>
+            <tbody id="table-data">
+            </tbody>
+        </table>
+
+        <!-- note -->
+        <hr>
+        <p><b>NOTE:</b> In typical situation value of <i>Nominal Sync Jump Width</i> is equal to <i>Time Seg2</i> for Nominal and Data segment</p>
+
+        <!-- footer -->
+        <hr>
+        <div class="footer">
+            <p> Create by : <a href="https://github.com/phryniszak" target="_blank">phryniszak</a></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/combine/npm/jquery@3/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/what-input@5/dist/what-input.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/foundation-sites@6/dist/js/foundation.min.js"></script>
+
+    <script>
+        $(document).foundation();
+
+        // globals
+        const _my_ = {};
+        globalThis._my_ = _my_;
+
+        const fdcan = {};
+        _my_.fdcan = fdcan;
+
+        fdcan.NominalPrescalerMax = 512;
+        fdcan.NominalTimeSeg1Max = 256;
+        fdcan.NominalTimeSeg2Max = 128;
+        //
+        fdcan.DataPrescalerMax = 32;
+        fdcan.DataTimeSeg1Max = 32;
+        fdcan.DataTimeSeg2Max = 16;
+
+        _my_.input_clock = document.getElementById("input_clock");
+        _my_.button_resolve = document.getElementById("button_resolve");
+        _my_.input_clock_divider = document.getElementById("input_clock_divider");
+        _my_.input_nominal_rate = document.getElementById("input_nominal_rate");
+        _my_.input_sampling_point_nominal = document.getElementById("input_sampling_point_nominal");
+        _my_.input_data_rate = document.getElementById("input_data_rate");
+        _my_.input_sampling_point_data = document.getElementById("input_sampling_point_data");
+
+        _my_.display_table_rows = 5;
+        _my_.input_clock.value = 80;
+        _my_.input_nominal_rate.value = 1000;
+        _my_.input_data_rate.value = 8000;
+
+        _my_.button_resolve.onclick = () => {
+            // 1
+            const clock = filterInt(_my_.input_clock.value);
+            _my_.input_clock.style.backgroundColor = isNaN(clock) ? "red" : "";
+            // 2
+            const clock_divider = parseInt(_my_.input_clock_divider.selectedOptions[0].value);
+            // 3
+            const nominal_rate = filterInt(_my_.input_nominal_rate.value);
+            _my_.input_nominal_rate.style.backgroundColor = isNaN(nominal_rate) ? "red" : "";
+            // 4
+            const sampling_point_nominal = parseInt(_my_.input_sampling_point_nominal.value);
+            // 5
+            const data_rate = filterInt(_my_.input_data_rate.value);
+            _my_.input_data_rate.style.backgroundColor = isNaN(data_rate) ? "red" : "";
+            // 6
+            const sampling_point_data = parseInt(_my_.input_sampling_point_data.value);
+
+            const tfdcan_tq_clk = clock * 1e6 / clock_divider;
+
+            //-----------------------------------------------------------------
+            // solve for nominal
+            _my_.results_nominal = [];
+
+            for (let prescaler = 1; prescaler < fdcan.NominalPrescalerMax; prescaler++) {
+
+                const ftq = tfdcan_tq_clk / prescaler;
+                const tq_per_bit = Math.round(ftq / (nominal_rate * 1000));
+
+                if (isNaN(ftq) || isNaN(tq_per_bit)) {
+                    continue;
+                }
+
+                // can not find working solution with less then 4 tq per bit
+                // NominalTimeSeg1Min(1) + NominalTimeSeg2Min(1) + tSyncSeg(1)
+                if (tq_per_bit < 4) {
+                    continue;
+                }
+
+                let tBS1 = Math.round(tq_per_bit * sampling_point_nominal / 100);
+                const tBS2 = tq_per_bit - tBS1;
+                // reduce by tSyncSeg
+                tBS1--;
+
+                // are segments in allowed limits
+                if (isNaN(tBS1) || (tBS1 < 1) || (tBS1 > fdcan.NominalTimeSeg1Max)) {
+                    continue;
+                }
+
+                if (isNaN(tBS1) || (tBS2 < 1) || (tBS1 > fdcan.NominalTimeSeg2Max)) {
+                    continue;
+                }
+
+                _my_.results_nominal.push({
+                    tfdcan_tq_clk,
+                    rate: nominal_rate,
+                    prescaler,
+                    tq_per_bit,
+                    tBS1,
+                    tBS2
+                });
+            }
+
+            // fill table with nominal
+            updateTable(sampling_point_nominal, _my_.results_nominal, document.getElementById("table-nominal"));
+
+            //-----------------------------------------------------------------
+            // solve for data 
+            _my_.results_data = [];
+
+            for (let prescaler = 1; prescaler < fdcan.DataPrescalerMax; prescaler++) {
+
+                const ftq = tfdcan_tq_clk / prescaler;
+                const tq_per_bit = Math.round(ftq / (data_rate * 1000));
+
+                if (isNaN(ftq) || isNaN(tq_per_bit)) {
+                    continue;
+                }
+
+                // can not find working solution with less then 4 tq per bit
+                // NominalTimeSeg1Min(1) + NominalTimeSeg2Min(1) + tSyncSeg(1)
+                if (tq_per_bit < 4) {
+                    continue;
+                }
+
+                let tBS1 = Math.round(tq_per_bit * sampling_point_data / 100);
+                const tBS2 = tq_per_bit - tBS1;
+                // reduce by tSyncSeg
+                tBS1--;
+
+                // are segments in allowed limits
+                if (isNaN(tBS1) || (tBS1 < 1) || (tBS1 > fdcan.DataTimeSeg1Max)) {
+                    continue;
+                }
+
+                if (isNaN(tBS1) || (tBS2 < 1) || (tBS1 > fdcan.DataTimeSeg2Max)) {
+                    continue;
+                }
+
+                _my_.results_data.push({
+                    tfdcan_tq_clk,
+                    rate: data_rate,
+                    prescaler,
+                    tq_per_bit,
+                    tBS1,
+                    tBS2
+                });
+            }
+
+            // fill table with nominal
+            updateTable(sampling_point_data, _my_.results_data, document.getElementById("table-data"));
+        };
+
+        //
+        //
+        //
+        function updateTable(sampling_point, results, tableRef) {
+
+            // hide table when we don't have results
+            // tableRef.parentElement.style.display = (_my_.results_nominal.length > 0) ? "" : "none";
+
+            // remove previous results
+            while (tableRef.rows.length > 0) {
+                tableRef.deleteRow(0);
+            }
+
+            // now add new results
+            let rows = 0
+            results.forEach(res => {
+
+                if (rows < _my_.display_table_rows) {
+
+                    console.log(res);
+
+                    // Insert a row at the end of the table
+                    let newRow = tableRef.insertRow(-1);
+
+                    newRow.insertCell(0).appendChild(document.createTextNode(res.rate));
+                    newRow.insertCell(1).appendChild(document.createTextNode(res.prescaler));
+                    newRow.insertCell(2).appendChild(document.createTextNode(res.tq_per_bit));
+                    newRow.insertCell(3).appendChild(document.createTextNode(res.tBS1));
+                    newRow.insertCell(4).appendChild(document.createTextNode(res.tBS2));
+                    const diff = Math.round((res.tBS1 + 1) * 100 / res.tq_per_bit);
+                    newRow.insertCell(5).appendChild(document.createTextNode(diff));
+                    newRow.insertCell(6).appendChild(document.createTextNode(sampling_point - diff));
+                    rows++;
+                }
+            });
+        }
+
+
+        //
+        //
+        //
+        function filterInt(value) {
+            if (/^[-+]?(\d+|Infinity)$/.test(value)) {
+                return Number(value)
+            } else {
+                return NaN
+            }
+        }
+    </script>
+
+</body>
+
+</html>
