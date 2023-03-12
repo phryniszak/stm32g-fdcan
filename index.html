@@ -64,6 +64,24 @@
 
             <!-- 3 -->
             <div class="small-3 cell">
+                <label class="text-right middle">Baudrate tolerance</label>
+            </div>
+            <div class="small-4 cell">
+                <div class="slider" data-slider data-start="0" data-initial-start="0" data-step="0.5" data-end="1.5">
+                    <span class="slider-handle" data-slider-handle role="slider" tabindex="1"
+                        aria-controls="input_baud_rate_tollerance"></span>
+                    <span class="slider-fill" data-slider-fill></span>
+                </div>
+            </div>
+            <div class="cell small-1">
+                <input type="number" id="input_baud_rate_tollerance">
+            </div>
+            <div class="small-4 cell">
+                <div class="text-left middle">[%]</div>
+            </div>
+
+            <!-- 4 -->
+            <div class="small-3 cell">
                 <label class="text-right middle">Nominal rate (CLASSIC CAN)</label>
             </div>
             <div class="small-5 cell">
@@ -73,7 +91,7 @@
                 <div class="text-left middle">[kbit/s]</div>
             </div>
 
-            <!-- 4 -->
+            <!-- 5 -->
             <div class="small-3 cell">
                 <label class="text-right middle">Sampling point (CLASSIC CAN)</label>
             </div>
@@ -91,7 +109,7 @@
                 <div class="text-left middle">[%]</div>
             </div>
 
-            <!-- 5 -->
+            <!-- 6 -->
             <div class="small-3 cell">
                 <label class="text-right middle">Data rate (FD CAN)</label>
             </div>
@@ -102,7 +120,7 @@
                 <div class="text-left middle">[kbit/s]</div>
             </div>
 
-            <!-- 6 -->
+            <!-- 7 -->
             <div class="small-3 cell">
                 <label class="text-right middle">Sampling point (CLASSIC CAN)</label>
             </div>
@@ -120,7 +138,7 @@
                 <div class="text-left middle">[%]</div>
             </div>
 
-            <!-- 7 -->
+            <!-- 8 -->
             <div class="small-5 cell small-offset-3">
                 <button id="button_resolve" class="submit success button expanded">SOLVE</button>
             </div>
@@ -166,7 +184,8 @@
 
         <!-- note -->
         <hr>
-        <p><b>NOTE:</b> In typical situation value of <i>Nominal Sync Jump Width</i> is equal to <i>Time Seg2</i> for Nominal and Data segment</p>
+        <p><b>NOTE:</b> In typical situation value of <i>Nominal Sync Jump Width</i> is equal to <i>Time Seg2</i> for
+            Nominal and Data segment</p>
 
         <!-- footer -->
         <hr>
@@ -204,6 +223,7 @@
         _my_.input_sampling_point_nominal = document.getElementById("input_sampling_point_nominal");
         _my_.input_data_rate = document.getElementById("input_data_rate");
         _my_.input_sampling_point_data = document.getElementById("input_sampling_point_data");
+        _my_.input_baud_rate_tollerance = document.getElementById("input_baud_rate_tollerance");
 
         _my_.display_table_rows = 5;
         _my_.input_clock.value = 80;
@@ -215,16 +235,18 @@
             const clock = filterInt(_my_.input_clock.value);
             _my_.input_clock.style.backgroundColor = isNaN(clock) ? "red" : "";
             // 2
-            const clock_divider = parseInt(_my_.input_clock_divider.selectedOptions[0].value);
+            const baud_rate_tolerance = parseFloat(_my_.input_baud_rate_tollerance.value);
             // 3
+            const clock_divider = parseInt(_my_.input_clock_divider.selectedOptions[0].value);
+            // 4
             const nominal_rate = filterInt(_my_.input_nominal_rate.value);
             _my_.input_nominal_rate.style.backgroundColor = isNaN(nominal_rate) ? "red" : "";
-            // 4
-            const sampling_point_nominal = parseInt(_my_.input_sampling_point_nominal.value);
             // 5
+            const sampling_point_nominal = parseInt(_my_.input_sampling_point_nominal.value);
+            // 6
             const data_rate = filterInt(_my_.input_data_rate.value);
             _my_.input_data_rate.style.backgroundColor = isNaN(data_rate) ? "red" : "";
-            // 6
+            // 7
             const sampling_point_data = parseInt(_my_.input_sampling_point_data.value);
 
             const tfdcan_tq_clk = clock * 1e6 / clock_divider;
@@ -258,7 +280,17 @@
                     continue;
                 }
 
-                if (isNaN(tBS1) || (tBS2 < 1) || (tBS1 > fdcan.NominalTimeSeg2Max)) {
+                if (isNaN(tBS2) || (tBS2 < 1) || (tBS2 > fdcan.NominalTimeSeg2Max)) {
+                    continue;
+                }
+
+                // A maximum node-to-node oscillator variation of 1.7% is allowed.
+                // https://www.calculatorsoup.com/calculators/algebra/percent-difference-calculator.php
+                let tfq_real = tq_per_bit * nominal_rate * 1000;
+                let freq_diff = (ftq - tfq_real) * 2 * 100 / (ftq + tfq_real);
+
+                // is baudrate in limits
+                if (Math.abs(freq_diff) > baud_rate_tolerance) {
                     continue;
                 }
 
@@ -268,7 +300,8 @@
                     prescaler,
                     tq_per_bit,
                     tBS1,
-                    tBS2
+                    tBS2,
+                    freq_diff
                 });
             }
 
@@ -304,7 +337,17 @@
                     continue;
                 }
 
-                if (isNaN(tBS1) || (tBS2 < 1) || (tBS1 > fdcan.DataTimeSeg2Max)) {
+                if (isNaN(tBS2) || (tBS2 < 1) || (tBS2 > fdcan.DataTimeSeg2Max)) {
+                    continue;
+                }
+
+                // A maximum node-to-node oscillator variation of 1.7% is allowed.
+                // https://www.calculatorsoup.com/calculators/algebra/percent-difference-calculator.php
+                let tfq_real = tq_per_bit * data_rate * 1000;
+                let freq_diff = (ftq - tfq_real) * 2 * 100 / (ftq + tfq_real);
+
+                // is baudrate in limits
+                if (Math.abs(freq_diff) > baud_rate_tolerance) {
                     continue;
                 }
 
@@ -314,7 +357,8 @@
                     prescaler,
                     tq_per_bit,
                     tBS1,
-                    tBS2
+                    tBS2,
+                    freq_diff
                 });
             }
 
